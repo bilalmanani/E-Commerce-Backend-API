@@ -1,0 +1,26 @@
+# Virtual Environments
+.venv/
+venv/
+
+# Python Bytecode & Caches
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local Environment Variables & Logs
+.env
+*.log
+
+# Git & IDE Caches
+.git/
+.gitignore
+.vscode/
+.idea/
+
+# Frontend Node Modules & Builds
+frontend/node_modules/
+frontend/dist/
