@@ -37,13 +37,13 @@ async def register(
     # 2. Hash raw password
     hashed_pwd = hash_password(user_in.password)
 
-    # 3. Create User object
+    # 3. Create User object (Public registration is always customer role for security)
     new_user = User(
-        email=user_in.email,
+        email=user_in.email.strip().lower(),
         first_name=user_in.first_name,
         last_name=user_in.last_name,
         hashed_password=hashed_pwd,
-        role=user_in.role
+        role=UserRole.CUSTOMER
     )
     db.add(new_user)
     await db.flush()  # Populates new_user.id before commit
