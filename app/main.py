@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,7 +8,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 
 from app.core.config import settings
-from app.database.session import get_db
+from app.database.session import get_db, engine
+from app.models import Base
+from seed_demo_data import seed_data
 from app.middleware.logging import LoggingMiddleware
 from app.core.exceptions import (
     http_exception_handler,
@@ -18,13 +21,33 @@ from app.routers import (
     auth, user, category, product, cart, wishlist, address, order, review, coupon, admin
 )
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Lifespan event handler for FastAPI startup and shutdown.
+    Ensures database tables are created and demo data is seeded automatically.
+    """
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        await seed_data()
+        print("✅ Lifespan: Database initialized and seeded successfully.")
+    except Exception as e:
+        print(f"⚠️ Lifespan DB setup notice: {e}")
+    yield
+    await engine.dispose()
+
+
 app = FastAPI(
     title=settings.APP_NAME,
     description="A production-ready E-Commerce Backend API built with FastAPI, SQLAlchemy 2.0, PostgreSQL, and Pydantic v2.",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
+    lifespan=lifespan,
 )
+
 
 # 1. Configure CORS Middleware
 app.add_middleware(
